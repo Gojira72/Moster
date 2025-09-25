@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
@@ -49,9 +50,19 @@ class AuthController extends Controller
     // Logout
     public function logout(Request $request)
     {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        $guard = Auth::guard();
+
+        if ($guard->check()) {
+            $guard->logout();
+
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            if (method_exists($guard, 'getRecallerName')) {
+                Cookie::queue(Cookie::forget($guard->getRecallerName()));
+            }
+        }
+
         return redirect()->route('login');
     }
 
