@@ -135,11 +135,11 @@
 </head>
 <body>
 
-@include('partials.header')  
+@include('partials.header')
 
 <div class="login-container">
     <h1>Login</h1>
-    
+
     <!-- Feedback erros -->
     @if ($errors->any())
       <div class="feedback">
@@ -151,15 +151,19 @@
       </div>
     @endif
 
-<form action="{{ route('login.store') }}" method="POST">
+<form action="{{ route('login.store') }}" method="POST" novalidate>
   @csrf
   <div class="input-group">
     <label for="email">E-mail</label>
-    <input type="email" id="email" name="email" placeholder="Digite seu e-mail" value="{{ old('email') }}">
+    <input type="email" id="email" name="email" placeholder="Digite seu e-mail" value="{{ old('email') }}" required autocomplete="email">
   </div>
   <div class="input-group">
     <label for="password">Senha</label>
-    <input type="password" id="password" name="password" placeholder="Digite sua senha" >
+    <input type="password" id="password" name="password" placeholder="Digite sua senha" required autocomplete="current-password">
+  </div>
+  <div class="input-group" style="display:flex;align-items:center;gap:10px;">
+    <input type="checkbox" id="remember" name="remember" value="1" {{ old('remember') ? 'checked' : '' }}>
+    <label for="remember" style="margin:0;">Manter sessão ativa</label>
   </div>
   <button type="submit" class="btn-login">Entrar</button>
 </form>
