@@ -44,7 +44,7 @@ class RegisterController extends Controller
         // Faz o login do usuário recém-cadastrado
         Auth::login($usuarioo);
 
-        // Redireciona para a home após o cadastro
-        return redirect()->route('welcome')->with('success', 'Cadastro realizado com sucesso!');
+        // Redireciona para a área autenticada
+        return redirect()->route('teste')->with('success', 'Cadastro realizado com sucesso!');
     }
 }

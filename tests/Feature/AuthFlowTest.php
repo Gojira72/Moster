@@ -22,7 +22,8 @@ class AuthFlowTest extends TestCase
             'password_confirmation' => 'SenhaForte1',
         ]);
 
-        $resposta->assertRedirect(route('welcome'));
+        $resposta->assertRedirect(route('teste'));
+        $resposta->assertSessionHas('success', 'Cadastro realizado com sucesso!');
 
         $usuario = LoginModel::where('emailUsuario', 'teste@gmail.com')->first();
         $this->assertNotNull($usuario);
@@ -65,6 +66,21 @@ class AuthFlowTest extends TestCase
         $this->assertGuest();
     }
 
+    public function test_login_redireciona_para_area_restrita_quando_nao_ha_destino_definido(): void
+    {
+        $usuario = LoginModel::factory()->withPassword('SenhaForte1')->create([
+            'emailUsuario' => 'teste@gmail.com',
+        ]);
+
+        $resposta = $this->post(route('login.store'), [
+            'email' => 'teste@gmail.com',
+            'password' => 'SenhaForte1',
+        ]);
+
+        $resposta->assertRedirect(route('teste'));
+        $this->assertAuthenticatedAs($usuario);
+    }
+
     public function test_login_redireciona_para_pagina_original(): void
     {
         $usuario = LoginModel::factory()->withPassword('SenhaForte1')->create([
@@ -79,6 +95,26 @@ class AuthFlowTest extends TestCase
 
         $resposta->assertRedirect(route('teste'));
         $this->assertAuthenticatedAs($usuario);
+    }
+
+    public function test_pagina_teste_exibe_dados_do_usuario_logado(): void
+    {
+        $usuario = LoginModel::factory()->create([
+            'nomeUsuario' => 'Maria Teste',
+            'emailUsuario' => 'maria@example.com',
+        ]);
+
+        $this->actingAs($usuario);
+
+        $resposta = $this->get(route('teste'));
+
+        $resposta->assertOk();
+        $resposta->assertSeeText('Login realizado com sucesso!');
+        $resposta->assertSeeText('Você está autenticado no sistema.');
+        $resposta->assertSeeText('Maria Teste');
+        $resposta->assertSeeText('maria@example.com');
+        $resposta->assertSeeText((string) $usuario->id);
+        $resposta->assertSeeText('Registrado em');
     }
 
     public function test_feedback_e_sanitizado_e_armazenado(): void
