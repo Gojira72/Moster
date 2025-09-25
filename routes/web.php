@@ -1,17 +1,17 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\RegisterController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('usuario.welcome'); // resources/views/usuario/welcome.blade.php
 })->name('welcome');
 
 // Página restrita "teste" (apenas para usuários logados)
-Route::middleware('auth')->group(function() {
-    Route::get('/teste', function() {
+Route::middleware('auth')->group(function () {
+    Route::get('/teste', function () {
         return view('usuario.teste'); // resources/views/usuario/teste.blade.php
     })->name('teste');
 });

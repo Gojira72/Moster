@@ -4,11 +4,11 @@ namespace Tests\Feature;
 
 use App\Models\Feedback;
 use App\Models\LoginModel;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class AuthFlowTest extends TestCase
 {
