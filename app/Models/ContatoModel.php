@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Auth\Authenticatable as AuthenticatableTrait;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Auth\Authenticatable as AuthenticatableTrait;
 
 class ContatoModel extends Model implements Authenticatable
 {
-    use HasFactory, AuthenticatableTrait;
+    use AuthenticatableTrait, HasFactory;
 
     protected $table = 'contato';
 

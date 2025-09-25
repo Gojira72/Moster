@@ -3,10 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Sanctum\HasApiTokens;
 
 class LoginModel extends Authenticatable
 {
+    use HasApiTokens;
     use HasFactory;
 
     /**
@@ -21,6 +26,9 @@ class LoginModel extends Authenticatable
         'nomeUsuario',
         'emailUsuario',
         'senhaUsuario',
+        'telefone',
+        'avatar_url',
+        'documento',
         'remember_token',
     ];
 
@@ -37,6 +45,7 @@ class LoginModel extends Authenticatable
      */
     protected $casts = [
         'emailUsuario' => 'string',
+        'telefone' => 'string',
     ];
 
     /**
@@ -62,5 +71,33 @@ class LoginModel extends Authenticatable
     {
         return 'remember_token';
     }
-}
 
+    /**
+     * Conta vinculada ao usuário.
+     */
+    public function conta(): HasOne
+    {
+        return $this->hasOne(Conta::class, 'usuario_id');
+    }
+
+    /**
+     * Cartões vinculados ao usuário.
+     */
+    public function cartoes(): HasMany
+    {
+        return $this->hasMany(Cartao::class, 'usuario_id');
+    }
+
+    /**
+     * Transações do usuário através da conta.
+     */
+    public function transacoes(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            Transacao::class,
+            Conta::class,
+            'usuario_id',
+            'conta_id'
+        )->latest('ocorreu_em');
+    }
+}

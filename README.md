@@ -1,342 +1,186 @@
-# <PREENCHER>
+# Nubank Clone - Backend Laravel + API para App React Native
 
 ## Título e Visão Geral
 
-<PREENCHER> — descrição breve do propósito da aplicação e das principais funcionalidades oferecidas.
+Backend Laravel 12 que expõe a API consumida pelo aplicativo React Native clone do Nubank. O projeto fornece autenticação via tokens do Laravel Sanctum, dados financeiros simulados (conta, cartão e extrato), endpoints REST padronizados e seeders com um usuário demo para testes locais.
 
 ## Sumário
 
 - [Stack e Versões](#stack-e-versões)
-- [Como Identificar a Stack](#como-identificar-a-stack)
 - [Estrutura do Projeto](#estrutura-do-projeto)
-- [Pré-requisitos por Sistema Operacional](#pré-requisitos-por-sistema-operacional)
-- [Clonagem e Configuração (Passo a Passo)](#clonagem-e-configuração-passo-a-passo)
+- [Configuração do Ambiente](#configuração-do-ambiente)
 - [Configuração do .env](#configuração-do-env)
 - [Banco de Dados: Migrações e Seeders](#banco-de-dados-migrações-e-seeders)
-- [Front-end (Vite / Node)](#front-end-vite--node)
-- [Execução da Aplicação](#execução-da-aplicação)
-- [Opcional: Docker / Laravel Sail](#opcional-docker--laravel-sail)
-- [Tarefas Agendadas e Filas](#tarefas-agendadas-e-filas)
-- [Testes Automatizados](#testes-automatizados)
+- [Execução do Backend](#execução-do-backend)
+- [Integração com o App React Native](#integração-com-o-app-react-native)
+- [Endpoints Principais](#endpoints-principais)
+- [Testes Automatizados e Lint](#testes-automatizados-e-lint)
+- [Rollback](#rollback)
 - [Comandos Úteis](#comandos-úteis)
-- [Solução de Problemas (FAQ)](#solução-de-problemas-faq)
-- [Licença](#licença)
-- [Checklist para Adaptação](#checklist-para-adaptação)
-- [Pendências de Configuração](#pendências-de-configuração)
 
 ## Stack e Versões
 
 | Componente | Versão / Requisito | Observações |
 |------------|--------------------|-------------|
-| PHP        | ^8.2               | Confirmado em `composer.json`. |
-| Laravel    | ^12.0              | Framework principal (`laravel/framework`). |
-| Composer   | 2.6+ (recomendado) | Necessário para gerenciar dependências PHP. |
-| Node.js    | ^20 (LTS recomendada) | Compatível com Vite 7 e Tailwind 4. |
-| NPM        | ^10                | Ou Yarn/Pnpm, se preferir. |
-| Vite       | ^7.0.4             | Configurado em `vite.config.js`. |
-| Banco de Dados | SQLite (padrão), suporte a MySQL/PostgreSQL | Ajustável via `.env`. |
-| Redis      | Opcional (phpredis) | Configurado em `.env.example`. |
-| Laravel Sail | ^1.41 (dev)      | Disponível para ambiente Docker opcional. |
-
-## Como Identificar a Stack
-
-Execute os comandos abaixo para confirmar versões instaladas:
-
-```bash
-php -v
-php artisan --version
-composer -V
-composer show laravel/framework
-node -v
-npm -v
-php artisan about
-```
+| PHP        | ^8.2               | Necessário para Laravel 12. |
+| Laravel    | ^12.28             | Framework principal. |
+| Composer   | 2.6+               | Gerenciamento de dependências PHP. |
+| Node.js    | ^20                | Útil para Vite/Tailwind (front web opcional). |
+| NPM        | ^10                | Scripts utilitários. |
+| SQLite     | Padrão             | Configuração default em `.env.example`. |
+| Laravel Sanctum | ^4.2         | Autenticação por token para o app móvel. |
 
 ## Estrutura do Projeto
 
-Estrutura base (resumo):
-
 ```
 app/
+├── Enums/
+├── Http/
+│   ├── Controllers/Api/
+│   ├── Requests/Api/
+│   └── Resources/
+├── Models/
 bootstrap/
 config/
 database/
+├── factories/
+├── migrations/
+└── seeders/
 public/
 resources/
 routes/
-storage/
+├── api.php
+└── web.php
 tests/
-vite.config.js
+└── Feature/Api/
 ```
 
-Adapte conforme as necessidades específicas do projeto.
+## Configuração do Ambiente
 
-## Pré-requisitos por Sistema Operacional
-
-### Windows
-
-1. Instale o [WSL2](https://learn.microsoft.com/windows/wsl/install) com Ubuntu 22.04+ (recomendado para consistência).
-2. Dentro do WSL:
+1. Instale PHP 8.2+, Composer 2.6+, Node.js 20+ e NPM 10+.
+2. Clone o repositório e acesse a pasta do projeto.
+3. Instale as dependências PHP:
    ```bash
-   sudo apt update && sudo apt upgrade -y
-   sudo apt install -y php8.2 php8.2-fpm php8.2-cli php8.2-xml php8.2-curl php8.2-mbstring php8.2-zip php8.2-intl php8.2-bcmath php8.2-sqlite3 php8.2-mysql php8.2-pgsql unzip git curl build-essential
-   sudo apt install -y redis-server
+   composer install
    ```
-3. Instale o Composer:
+4. (Opcional) Instale dependências JavaScript caso utilize os assets via Vite:
    ```bash
-   curl -sS https://getcomposer.org/installer -o composer-setup.php
-   php composer-setup.php --install-dir=/usr/local/bin --filename=composer
-   rm composer-setup.php
-   composer -V
+   npm install
    ```
-4. Instale Node.js LTS via [nvm](https://github.com/nvm-sh/nvm):
-   ```bash
-   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-   source ~/.nvm/nvm.sh
-   nvm install --lts
-   node -v && npm -v
-   ```
-5. Banco de dados: utilize o serviço do WSL (MySQL/PostgreSQL) ou bancos hospedados externamente.
-
-> Alternativa nativa: instale [PHP para Windows](https://windows.php.net/download/), [Composer](https://getcomposer.org/download/), [Git](https://git-scm.com/download/win) e [Node.js LTS](https://nodejs.org/en/download). Garanta extensões equivalentes.
-
-### Ubuntu/Debian
-
-```bash
-sudo apt update && sudo apt upgrade -y
-sudo apt install -y php8.2 php8.2-fpm php8.2-cli php8.2-xml php8.2-curl php8.2-mbstring php8.2-zip php8.2-intl php8.2-bcmath php8.2-sqlite3 php8.2-mysql php8.2-pgsql unzip git curl build-essential
-sudo apt install -y redis-server
-curl -sS https://getcomposer.org/installer -o composer-setup.php
-php composer-setup.php --install-dir=/usr/local/bin --filename=composer
-rm composer-setup.php
-composer -V
-curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-sudo apt install -y nodejs
-node -v && npm -v
-```
-
-Instale e configure MySQL/PostgreSQL conforme a necessidade.
-
-### macOS
-
-1. Instale o [Homebrew](https://brew.sh/).
-2. Pacotes principais:
-   ```bash
-   brew update
-   brew install php composer git redis
-   brew install mysql # ou brew install postgresql
-   brew install node
-   ```
-3. Inicie serviços conforme necessário:
-   ```bash
-   brew services start mysql
-   brew services start redis
-   ```
-4. Verifique versões:
-   ```bash
-   php -v
-   composer -V
-   node -v && npm -v
-   ```
-
-## Clonagem e Configuração (Passo a Passo)
-
-```bash
-git clone <PREENCHER_URL_DO_REPO>
-cd <PREENCHER_DIRETORIO>
-composer install
-cp .env.example .env
-php artisan key:generate
-php artisan storage:link
-php artisan migrate # Ajuste para o banco utilizado
-npm install
-```
-
-Ajuste permissões (Linux/macOS):
-
-```bash
-sudo chown -R $USER:www-data storage bootstrap/cache
-sudo chmod -R ug+rwx storage bootstrap/cache
-```
 
 ## Configuração do .env
 
-| Variável | Descrição | Exemplo (MySQL) | Exemplo (PostgreSQL) |
-|----------|-----------|-----------------|----------------------|
-| `APP_NAME` | Nome da aplicação | `APP_NAME="<PREENCHER>"` | `APP_NAME="<PREENCHER>"` |
-| `APP_ENV` | Ambiente de execução | `local` | `local` |
-| `APP_KEY` | Chave de criptografia | Gerado via `php artisan key:generate` | Igual |
-| `APP_DEBUG` | Debug habilitado | `true` em dev | `false` em prod |
-| `APP_URL` | URL pública | `http://localhost` | `http://localhost` |
-| `DB_CONNECTION` | Driver do banco | `mysql` | `pgsql` |
-| `DB_HOST` | Host do banco | `127.0.0.1` | `127.0.0.1` |
-| `DB_PORT` | Porta | `3306` | `5432` |
-| `DB_DATABASE` | Nome do banco | `laravel` | `laravel` |
-| `DB_USERNAME` | Usuário | `root` | `postgres` |
-| `DB_PASSWORD` | Senha | `<senha>` | `<senha>` |
-| `CACHE_STORE` | Driver de cache | `database` ou `redis` | `database` ou `redis` |
-| `QUEUE_CONNECTION` | Driver de filas | `database`, `redis`, `sqs`... | `database`, `redis`, `sqs`... |
-| `SESSION_DRIVER` | Armazenamento de sessão | `database` | `database` |
-| `REDIS_HOST` | Host Redis | `127.0.0.1` | `127.0.0.1` |
-
-Observações:
-
-- Para SQLite, use `DB_CONNECTION=sqlite` e deixe os demais campos comentados.
-- Em produção, defina `APP_ENV=production` e `APP_DEBUG=false`.
-- Se utilizar Sail, as variáveis de banco são geradas automaticamente em `.env` com prefixo `DB_` apontando para os containers.
+1. Copie o arquivo de exemplo e gere a chave da aplicação:
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+2. Ajuste as variáveis conforme sua base (SQLite por padrão):
+   ```env
+   APP_NAME="Nubank Clone"
+   APP_URL=http://localhost:8000
+   FRONTEND_URL=http://localhost:19006 # URL do Metro/Expo ou outro host do app RN
+   SANCTUM_STATEFUL_DOMAINS=localhost,localhost:19006
+   ```
+3. Para uso com SQLite local, garanta que o arquivo `database/database.sqlite` exista:
+   ```bash
+   touch database/database.sqlite
+   ```
 
 ## Banco de Dados: Migrações e Seeders
 
-```bash
-php artisan migrate
-php artisan db:seed
-php artisan migrate --seed
-php artisan migrate:fresh --seed
-```
+1. Execute as migrações e carregue os dados demo:
+   ```bash
+   php artisan migrate --seed
+   ```
+2. Usuário demo disponível após o seed:
+   - **E-mail:** `cliente@nubank.com`
+   - **Senha:** `SenhaForte1!`
 
-Utilize factories/seeders localmente para popular dados iniciais. Em produção, execute apenas o necessário.
+## Execução do Backend
 
-## Front-end (Vite / Node)
-
-```bash
-npm install
-npm run dev      # watcher com HMR
-npm run build    # bundle otimizado para produção
-```
-
-Caso prefira Yarn ou Pnpm, adapte os comandos (`yarn dev`, `pnpm dev`).
-
-## Execução da Aplicação
-
-### Ambiente de Desenvolvimento
-
+Servidor de desenvolvimento:
 ```bash
 php artisan serve --host=0.0.0.0 --port=8000
 ```
 
-Aplicação acessível em `http://localhost:8000`. Para servir filas e logs simultaneamente, utilize os scripts definidos em `composer.json`:
-
+Fila e logs (opcional, conforme `composer.json`):
 ```bash
-composer run dev
+composer dev
 ```
 
-### Ambiente de Produção
+## Integração com o App React Native
 
-- Configure um servidor web (Nginx ou Apache) apontando para a pasta `public/`.
-- Defina `APP_ENV=production` e `APP_DEBUG=false`.
-- Execute `php artisan config:cache`, `php artisan route:cache` e `php artisan view:cache` após o deploy.
-- Garanta que `php artisan storage:link` seja executado uma vez para expor os arquivos de `storage/app/public`.
+1. Configure o cliente HTTP do app para apontar para `http://<IP_DA_MAQUINA>:8000/api`.
+2. Use o token Bearer retornado pelo `POST /api/auth/login` em todas as rotas autenticadas.
+3. Em ambiente local, exponha o backend na mesma rede do dispositivo/emulador. Para Expo, utilize `FRONTEND_URL` com o host/porta do Metro bundler.
+4. Fluxo sugerido no app:
+   1. Login usando o usuário seed.
+   2. Buscar dados do usuário (`GET /api/users/me`).
+   3. Carregar saldo (`GET /api/accounts/me`).
+   4. Listar extrato (`GET /api/transactions`).
+   5. Exibir cartão (`GET /api/cards/me`).
+   6. Efetuar transferências com `POST /api/transfers`.
 
-## Opcional: Docker / Laravel Sail
+## Endpoints Principais
 
-1. Instale dependências básicas:
-   ```bash
-   composer install
-   cp .env.example .env
-   ```
-2. Habilite o Sail (primeira execução cria o binário):
-   ```bash
-   php artisan sail:install
-   ./vendor/bin/sail up -d
-   ```
-3. Comandos dentro do Sail:
-   ```bash
-   ./vendor/bin/sail php artisan key:generate
-   ./vendor/bin/sail php artisan migrate --seed
-   ./vendor/bin/sail npm install
-   ./vendor/bin/sail npm run dev   # ou npm run build
-   ./vendor/bin/sail artisan queue:work
-   ```
-4. Para encerrar:
-   ```bash
-   ./vendor/bin/sail down
-   ```
+### Autenticação
 
-Ajuste serviços (`mysql`, `pgsql`, `redis`) conforme seleção no `sail:install`.
+```http
+POST /api/auth/login
+Body: { "email": "cliente@nubank.com", "password": "SenhaForte1!" }
+```
+Resposta (200): token Bearer + dados do usuário.
 
-## Tarefas Agendadas e Filas
+```http
+POST /api/auth/logout
+Header: Authorization: Bearer <token>
+```
+Resposta (200): mensagem de sucesso.
 
-### Scheduler
+### Sessão e Dados
 
-Adicione ao crontab do usuário que executa o PHP:
-
-```bash
-* * * * * cd /caminho/para/<PREENCHER_DIRETORIO> && php artisan schedule:run >> /dev/null 2>&1
+```http
+GET /api/users/me
+GET /api/accounts/me
+GET /api/cards/me
+GET /api/transactions?por_pagina=20&tipo=entrada
+POST /api/transfers { "valor": 100.5, "descricao": "Transferência", "destinatario": "João" }
 ```
 
-### Filas
+Todas as rotas acima exigem cabeçalho `Authorization: Bearer <token>`.
 
-Durante o desenvolvimento:
+## Testes Automatizados e Lint
 
-```bash
-php artisan queue:work --tries=3 --backoff=5
-```
-
-Produção (sugestão com Supervisor):
-
-```ini
-[program:<PREENCHER>_queue]
-process_name=%(program_name)s_%(process_num)02d
-command=php /caminho/para/<PREENCHER_DIRETORIO>/artisan queue:work --sleep=3 --tries=3 --max-time=3600
-autostart=true
-autorestart=true
-numprocs=1
-redirect_stderr=true
-stdout_logfile=/var/log/<PREENCHER>_queue.log
-```
-
-## Testes Automatizados
-
+Execute os testes (unitários + integração):
 ```bash
 php artisan test
-# ou
-vendor/bin/phpunit
 ```
 
-Garanta que novos recursos possuam cobertura de testes.
+Rode o lint PHP com Pint:
+```bash
+./vendor/bin/pint
+```
+
+## Rollback
+
+Desfazer migrações e seeds aplicados:
+```bash
+php artisan migrate:rollback --step=1
+```
+Repita conforme necessário até retornar ao estado desejado. Para restaurar dados seed, execute novamente `php artisan migrate --seed`.
+
+Para reverter mudanças no working tree:
+```bash
+git reset --hard HEAD
+```
 
 ## Comandos Úteis
 
-```bash
-php artisan optimize
-php artisan cache:clear
-php artisan config:clear
-php artisan route:clear
-php artisan view:clear
-php artisan storage:link
-php artisan tinker
-```
+- Limpar caches: `php artisan optimize:clear`
+- Regenerar chaves Sanctum: `php artisan sanctum:prune-expired --hours=48`
+- Rodar somente testes de API: `php artisan test --testsuite=Feature --filter=Api`
 
-## Solução de Problemas (FAQ)
+---
 
-| Erro | Causa Provável | Solução |
-|------|----------------|---------|
-| `Application key set successfully.` ausente | `APP_KEY` não gerado | Execute `php artisan key:generate`. |
-| `SQLSTATE[HY000] [2002] Connection refused` | Banco indisponível | Verifique `DB_HOST`, porta, firewall e se o serviço está ativo. |
-| `Target class [Seeder] does not exist.` | Seeder não carregado | Execute `composer dump-autoload` e recompile, depois `php artisan db:seed`. |
-| Assets não atualizam | Cache do Vite | Execute `npm run dev -- --force` ou limpe o cache do navegador. |
-| `VITE_*` indefinido | Variáveis não expostas | Garanta `VITE_` prefixo no `.env` e reinicie `npm run dev`. |
-| Permissões de escrita | Usuário sem acesso | Ajuste permissões de `storage/` e `bootstrap/cache/`. |
-
-## Licença
-
-Este projeto está licenciado sob os termos MIT, conforme definido em `composer.json`. Ajuste se necessário.
-
-## Checklist para Adaptação
-
-- [ ] Atualizar nome e descrição do projeto.
-- [ ] Confirmar URL oficial do repositório.
-- [ ] Validar banco de dados padrão e credenciais de ambientes.
-- [ ] Definir serviços opcionais (Redis, Horizon, Telescope, etc.).
-- [ ] Documentar variáveis adicionais específicas do domínio.
-- [ ] Incluir instruções de CI/CD, pipelines e estratégias de deploy.
-- [ ] Revisar políticas de segurança, backup e monitoramento.
-- [ ] Adicionar referências a issues/milestones associadas ao projeto.
-
-## Pendências de Configuração
-
-- Nome oficial do projeto (`<PREENCHER>`).
-- Descrição resumida (`<PREENCHER>`).
-- URL do repositório (`<PREENCHER_URL_DO_REPO>`).
-- Banco de dados preferencial para produção (`<PREENCHER>`).
-- Serviços adicionais habilitados (ex.: Horizon, Passport, etc.).
+**Observação:** mantenha o padrão de commits em português e siga o Conventional Commits (ex.: `feat: adicionar API financeira`). Atualize este README sempre que novas rotas ou requisitos forem adicionados.

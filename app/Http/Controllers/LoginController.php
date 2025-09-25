@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LoginModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\LoginModel;
-
-
 
 class LoginController extends Controller
 {
@@ -20,8 +18,8 @@ class LoginController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'email'    => 'required|email',
-            'password' => 'required|min:6'
+            'email' => 'required|email',
+            'password' => 'required|min:6',
         ]);
 
         $usuario = LoginModel::where('emailUsuario', $request->email)->first();
@@ -34,7 +32,7 @@ class LoginController extends Controller
         }
 
         return back()->withErrors([
-            'email' => 'Credenciais inválidas. Verifique seu e-mail e senha.'
+            'email' => 'Credenciais inválidas. Verifique seu e-mail e senha.',
         ])->withInput();
     }
 
@@ -44,6 +42,7 @@ class LoginController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return redirect()->route('login');
     }
 }
