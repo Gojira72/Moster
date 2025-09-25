@@ -2,42 +2,65 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Auth\Authenticatable as AuthenticatableTrait;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class LoginModel extends Model implements Authenticatable
+class LoginModel extends Authenticatable
 {
-    use AuthenticatableTrait;
+    use HasFactory;
 
-    // Nome da tabela no banco
+    /**
+     * Nome da tabela no banco.
+     */
     protected $table = 'tb_usuarios';
 
-    // Campos que podem ser preenchidos via mass-assignment
+    /**
+     * Campos permitidos para atribuição em massa.
+     */
     protected $fillable = [
         'nomeUsuario',
         'emailUsuario',
         'senhaUsuario',
+        'remember_token',
     ];
 
-    // Campos que não devem ser expostos
+    /**
+     * Campos ocultos nas serializações.
+     */
     protected $hidden = [
         'senhaUsuario',
+        'remember_token',
     ];
 
-    // Desativa timestamps se sua tabela não tiver created_at/updated_at
-    public $timestamps = false;
+    /**
+     * Conversões automáticas de atributos.
+     */
+    protected $casts = [
+        'emailUsuario' => 'string',
+    ];
 
-    // Retorna a senha para autenticação
+    /**
+     * Retorna o atributo utilizado como senha pela autenticação do Laravel.
+     */
     public function getAuthPassword()
     {
         return $this->senhaUsuario;
     }
 
-    // Retorna o campo usado como identificador (normalmente email)
+    /**
+     * Define explicitamente o nome do campo utilizado como identificador.
+     */
     public function getAuthIdentifierName()
     {
         return 'emailUsuario';
+    }
+
+    /**
+     * Impede que o Laravel procure pelo campo remember_token quando ele não existir.
+     */
+    public function getRememberTokenName()
+    {
+        return 'remember_token';
     }
 }
 

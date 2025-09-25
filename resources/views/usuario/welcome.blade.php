@@ -91,11 +91,23 @@
             object-fit: cover;
         }*/
 
+        .alerta-sucesso {
+            margin: 120px auto 40px auto;
+            max-width: 960px;
+            padding: 15px 20px;
+            border-radius: 12px;
+            background: rgba(88, 37, 116, 0.15);
+            border: 1px solid rgba(88, 37, 116, 0.45);
+            color: #1c002e;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
         .wrapperConfirmacoes{
             display: flex;
             justify-content: center;
             gap: 5%;
-            padding: 20px; 
+            padding: 20px;
         }
 
         .cardConfirmacoes{
@@ -395,6 +407,11 @@
 <body>
     @include('partials.header')
     <!--@include('partials.footer')-->
+    @if (session('success'))
+        <div class="alerta-sucesso">
+            {{ session('success') }}
+        </div>
+    @endif
     <br><br><br>
     <section class="heroSection">
     <!--<div class="text">

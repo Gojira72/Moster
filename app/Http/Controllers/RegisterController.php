@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\LoginModel; // Modelo que interage com a tabela tb_usuarios
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class RegisterController extends Controller
 {
@@ -20,15 +21,23 @@ class RegisterController extends Controller
     {
         // Validação dos dados enviados
         $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:tb_usuarios,emailUsuario', // Validar o email na tabela tb_usuarios
-            'password' => 'required|string|min:6|confirmed',
+            'name' => 'required|string|min:3|max:255',
+            'email' => 'required|string|lowercase|email:rfc|max:255|unique:tb_usuarios,emailUsuario',
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',
+            ],
+        ], [
+            'password.regex' => 'A senha deve conter ao menos uma letra maiúscula, uma minúscula e um número.',
         ]);
 
         // Criação do usuário com senha criptografada
         $usuarioo = LoginModel::create([
-            'nomeUsuario' => $validatedData['name'],
-            'emailUsuario' => $validatedData['email'],
+            'nomeUsuario' => Str::squish($validatedData['name']),
+            'emailUsuario' => strtolower($validatedData['email']),
             'senhaUsuario' => Hash::make($validatedData['password']),
         ]);
 

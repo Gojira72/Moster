@@ -133,28 +133,29 @@
       </div>
     @endif
 
-    <form action="{{ route('register.store') }}" method="POST">
+    <form action="{{ route('register.store') }}" method="POST" novalidate>
       @csrf
       <div class="input-group">
         <label for="name">Nome Completo</label>
-        <input type="text" id="name" name="name" placeholder="Digite seu nome completo" value="{{ old('name') }}" required>
+        <input type="text" id="name" name="name" placeholder="Digite seu nome completo" value="{{ old('name') }}" required minlength="3" autocomplete="name">
       </div>
       <div class="input-group">
         <label for="email">E-mail</label>
-        <input type="email" id="email" name="email" placeholder="Digite seu e-mail" value="{{ old('email') }}" required>
+        <input type="email" id="email" name="email" placeholder="Digite seu e-mail" value="{{ old('email') }}" required autocomplete="email">
       </div>
       <div class="input-group">
         <label for="password">Senha</label>
-        <input type="password" id="password" name="password" placeholder="Digite sua senha" required>
+        <input type="password" id="password" name="password" placeholder="Digite sua senha" required minlength="8" autocomplete="new-password" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+">
+        <small style="display:block;margin-top:5px;font-size:0.8rem;">Use ao menos 8 caracteres com letras maiúsculas, minúsculas e números.</small>
       </div>
       <div class="input-group">
         <label for="password_confirmation">Confirmar Senha</label>
-        <input type="password" id="password_confirmation" name="password_confirmation" placeholder="Confirme sua senha" required>
+        <input type="password" id="password_confirmation" name="password_confirmation" placeholder="Confirme sua senha" required autocomplete="new-password">
       </div>
       <button type="submit" class="btn-register">Cadastrar</button>
     </form>
     <div class="login-link">
-      Já possui uma conta? <a href="{{ route('login.index') }}">Faça login</a>
+      Já possui uma conta? <a href="{{ route('login') }}">Faça login</a>
     </div>
   </div>
 </body>

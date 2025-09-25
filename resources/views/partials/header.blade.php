@@ -82,10 +82,12 @@
       <a href="{{ route('welcome') }}" class="logo">GHOUL HIGH</a>
       <ul class="nav-links">
         <li><a href="{{ route('welcome') }}">Início</a></li>
+        <li><a href="{{ route('feedback.create') }}">Contato</a></li>
         @guest
-          <li><a href="{{ route('login.index') }}">Login</a></li>
+          <li><a href="{{ route('login') }}">Login</a></li>
           <li><a href="{{ route('register.index') }}">Cadastre-se</a></li>
         @else
+          <li><a href="{{ route('teste') }}">Área restrita</a></li>
           <li><a href="#">{{ auth()->user()->nomeUsuario ?? auth()->user()->name ?? auth()->user()->email }}</a></li>
           <li>
             <form action="{{ route('logout') }}" method="POST" class="logout-form">
