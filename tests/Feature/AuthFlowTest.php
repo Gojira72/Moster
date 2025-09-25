@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Feedback;
 use App\Models\LoginModel;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Tests\TestCase;
@@ -95,6 +96,76 @@ class AuthFlowTest extends TestCase
 
         $resposta->assertRedirect(route('teste'));
         $this->assertAuthenticatedAs($usuario);
+    }
+
+    public function test_login_sem_manter_sessao_permite_visualizar_pagina_restrita(): void
+    {
+        $usuario = LoginModel::factory()->withPassword('SenhaForte1')->create([
+            'emailUsuario' => 'teste@gmail.com',
+        ]);
+
+        $respostaLogin = $this->post(route('login.store'), [
+            'email' => 'teste@gmail.com',
+            'password' => 'SenhaForte1',
+        ]);
+
+        $respostaLogin->assertRedirect(route('teste'));
+        $this->assertAuthenticatedAs($usuario);
+
+        $respostaRestrita = $this->get(route('teste'));
+        $respostaRestrita->assertOk();
+        $respostaRestrita->assertSeeText('Login realizado com sucesso!');
+    }
+
+    public function test_usuario_consegue_deslogar_e_perde_acesso_a_pagina_restrita(): void
+    {
+        $usuario = LoginModel::factory()->withPassword('SenhaForte1')->create([
+            'emailUsuario' => 'teste@gmail.com',
+        ]);
+
+        $this->post(route('login.store'), [
+            'email' => 'teste@gmail.com',
+            'password' => 'SenhaForte1',
+        ]);
+
+        $this->assertAuthenticatedAs($usuario);
+
+        $respostaLogout = $this->post(route('logout'));
+
+        $respostaLogout->assertRedirect(route('login'));
+        $this->assertGuest();
+
+        $respostaRestrita = $this->get(route('teste'));
+        $respostaRestrita->assertRedirect(route('login'));
+    }
+
+    public function test_logout_limpa_cookie_de_lembrar_usuario(): void
+    {
+        $usuario = LoginModel::factory()->withPassword('SenhaForte1')->create([
+            'emailUsuario' => 'teste@gmail.com',
+        ]);
+
+        $respostaLogin = $this->post(route('login.store'), [
+            'email' => 'teste@gmail.com',
+            'password' => 'SenhaForte1',
+            'remember' => '1',
+        ]);
+
+        $respostaLogin->assertRedirect(route('teste'));
+        $this->assertAuthenticatedAs($usuario);
+
+        $recallerName = Auth::guard()->getRecallerName();
+        $recallerCookie = $respostaLogin->getCookie($recallerName, false);
+
+        $this->assertNotNull($recallerCookie, 'O cookie de "lembrar" deveria estar presente após o login.');
+
+        $respostaLogout = $this
+            ->withUnencryptedCookie($recallerCookie->getName(), $recallerCookie->getValue())
+            ->post(route('logout'));
+
+        $respostaLogout->assertRedirect(route('login'));
+        $respostaLogout->assertCookieExpired($recallerName);
+        $this->assertGuest();
     }
 
     public function test_pagina_teste_exibe_dados_do_usuario_logado(): void
